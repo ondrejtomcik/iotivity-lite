@@ -1255,19 +1255,6 @@ index 6913dc0f6..c8510e400 100644
  #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
      defined(MBEDTLS_SSL_PROTO_TLS1_1)
  int mbedtls_ssl_get_key_exchange_md_ssl_tls( mbedtls_ssl_context *ssl,
-diff --git a/include/mbedtls/x509.h b/include/mbedtls/x509.h
-index c17750143..cf1633aae 100644
---- a/include/mbedtls/x509.h
-+++ b/include/mbedtls/x509.h
-@@ -358,7 +358,7 @@ int mbedtls_x509_set_extension( mbedtls_asn1_named_data **head, const char *oid,
- int mbedtls_x509_write_extensions( unsigned char **p, unsigned char *start,
-                            mbedtls_asn1_named_data *first );
- int mbedtls_x509_write_names( unsigned char **p, unsigned char *start,
--                      mbedtls_asn1_named_data *first );
-+                      const mbedtls_asn1_named_data *first );
- int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
-                     const char *oid, size_t oid_len,
-                     unsigned char *sig, size_t size );
 diff --git a/include/mbedtls/x509_crt.h b/include/mbedtls/x509_crt.h
 index 64ccb433b..56e3e30f5 100644
 --- a/include/mbedtls/x509_crt.h
@@ -1776,10 +1763,27 @@ index b87879ce6..94775f8ee 100644
      if( mbedtls_ssl_ciphersuite_uses_psk( ciphersuite_info ) )
      {
 diff --git a/library/ssl_srv.c b/library/ssl_srv.c
-index 1a6317320..8a392f11c 100644
+index 1a6317320..72a298b74 100644
 --- a/library/ssl_srv.c
 +++ b/library/ssl_srv.c
-@@ -3643,6 +3643,7 @@ curve_matching_done:
+@@ -975,7 +975,15 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
+          * and decrypting with the same RSA key.
+          */
+         if( mbedtls_ssl_check_cert_usage( cur->cert, ciphersuite_info,
+-                                  MBEDTLS_SSL_IS_SERVER, &flags ) != 0 )
++                                  MBEDTLS_SSL_IS_SERVER,
++#if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
++                                      ssl->conf->client_oid, ssl->conf->client_oid_len,
++                                      ssl->conf->server_oid, ssl->conf->server_oid_len,
++#else
++                                      NULL, 0,
++                                      NULL, 0,
++#endif                                                              
++                                  &flags ) != 0 )
+         {
+             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: "
+                                 "(extended) key usage extension" ) );
+@@ -3643,6 +3651,7 @@ curve_matching_done:
   * that do not include a ServerKeyExchange message, do nothing. Either
   * way, if successful, move on to the next step in the SSL state
   * machine. */
@@ -1787,7 +1791,7 @@ index 1a6317320..8a392f11c 100644
  static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
  {
      int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-@@ -4157,11 +4158,13 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
+@@ -4157,11 +4166,13 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
  #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
      defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
@@ -2405,7 +2409,7 @@ index a6cccf814..8d105e05d 100644
          seq_cur = cert_cur->certificate_policies.next;
          while( seq_cur != NULL )
 diff --git a/library/x509write_crt.c b/library/x509write_crt.c
-index 184c90cd3..237e49d89 100644
+index 184c90cd3..556b40bcd 100644
 --- a/library/x509write_crt.c
 +++ b/library/x509write_crt.c
 @@ -290,6 +290,63 @@ int mbedtls_x509write_crt_set_ns_cert_type( mbedtls_x509write_cert *ctx,
@@ -2422,13 +2426,13 @@ index 184c90cd3..237e49d89 100644
 +    switch ( name->name_type )
 +    {
 +    case MBEDTLS_X509_GENERALNAME_DNSNAME:
-+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( c, buf, name->value.dns_name.p, name->value.dns_name.len ) );
-+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( c, buf, name->value.dns_name.len ) );
++        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( c, buf, name->name.dns_name.p, name->name.dns_name.len ) );
++        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( c, buf, name->name.dns_name.len ) );
 +        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( c, buf, MBEDTLS_ASN1_CONTEXT_SPECIFIC | 2 ) );
 +        break;
 +
 +    case MBEDTLS_X509_GENERALNAME_DIRECTORYNAME:
-+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_x509_write_names( c, buf, name->value.directory_name ) );
++        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_x509_write_names( c, buf, name->name.directory_name ) );
 +        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( c, buf, len ) );
 +        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( c, buf,
 +                                   MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 4 ) );
