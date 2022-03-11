@@ -39,6 +39,7 @@ protected:
   virtual void SetUp()
   {
     oc_core_init();
+    oc_network_event_handler_mutex_init();
     oc_random_init();
   }
   virtual void TearDown()

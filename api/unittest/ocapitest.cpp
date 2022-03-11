@@ -22,6 +22,12 @@
 #include <gtest/gtest.h>
 #include <string>
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #include "oc_api.h"
 #include "port/oc_clock.h"
 
@@ -180,7 +186,11 @@ public:
     while (waitTime && !s_isCallbackReceived) {
       PRINT("Waiting for callback....\n");
       next_event = oc_main_poll();
+#ifdef _WIN32
+      Sleep(1000);
+#else
       sleep(1);
+#endif
       waitTime--;
     }
   }
