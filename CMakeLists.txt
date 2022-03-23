@@ -691,3 +691,12 @@ if(BUILD_EXAMPLE_APPLICATIONS)
     add_subdirectory(onboarding_tool)
     add_subdirectory(apps)
 endif()
+
+if(MINGW)
+    execute_process(
+        COMMAND touch test.c
+        COMMAND gcc -dM -E test.c
+        OUTPUT_VARIABLE output
+    )
+    message(STATUS ${output})
+endif()
