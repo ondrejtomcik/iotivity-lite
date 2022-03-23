@@ -11,10 +11,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  doxygen-publish:
-    if: ${{ false }}
+  doxygen-publish:    
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.merged }}
+    if: ${{ false }}
+    # if: ${{ github.event.pull_request.merged }}
     steps:
       - uses: actions/checkout@v2
         with:
