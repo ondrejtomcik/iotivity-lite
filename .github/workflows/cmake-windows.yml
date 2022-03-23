@@ -167,6 +167,14 @@ jobs:
         endif()
 
         execute_process(
+          COMMAND ls -l
+          OUTPUT_VARIABLE output
+        )
+        if (NOT result EQUAL 0)
+          message(STATUS "${output}")
+        endif()
+
+        execute_process(
           COMMAND ${{ steps.cmake_and_ninja.outputs.cmake_dir }}/ctest --test-dir build --verbose
           RESULT_VARIABLE result
         )
