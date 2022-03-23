@@ -154,6 +154,7 @@ jobs:
     - name: Test
       if: ${{ matrix.config.build_testing == 'ON' }}
       shell: cmake -P {0}
+      working-directory: build
       run: |
         set(ENV{NINJA_STATUS} "[%f/%t %o/sec] ")
 
@@ -175,7 +176,7 @@ jobs:
         endif()
 
         execute_process(
-          COMMAND ${{ steps.cmake_and_ninja.outputs.cmake_dir }}/ctest --test-dir build --verbose
+          COMMAND ${{ steps.cmake_and_ninja.outputs.cmake_dir }}/ctest --verbose
           RESULT_VARIABLE result
         )
         if (NOT result EQUAL 0)
