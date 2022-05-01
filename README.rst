@@ -54,7 +54,7 @@ Please review the following `specifications <https://openconnectivity.org/develo
 - `Bridging <https://openconnectivity.org/specs/OCF_Bridging_Specification.pdf>`_
 - `Headless Configuration (Wi-Fi Easy Setup) <https://openconnectivity.org/specs/OCF_Easy_Setup_Specification.pdf>`_
 
-The IoTivity project was created to bring together the open-source community to accelerate the development of the framework and services required to connect the growing number of IoT devices. The IoTivity project offers device vendors and application developers royalty-free access to `OCF technologies <https://openconnectivity.org/developer/specifications/>`_ under the `Apache 2.0 license <https://iotivity.org/about/apache-license>`_.
+The IoTivity project was created to bring together the open-source community to accelerate the development of the framework and services required to connect the growing number of IoT devices. The IoTiity project offers device vendors and application developers royalty-free access to `OCF technologies <https://openconnectivity.org/developer/specifications/>`_ under the `Apache 2.0 license <https://iotivity.org/about/apache-license>`_.
 
 IoTivity stack features
 -----------------------
